@@ -1,4 +1,4 @@
-import random, binascii
+import random, sys
 
 
 # Checks to see if a number is likely to be prime.
@@ -36,8 +36,6 @@ def is_prime(n):
             return False
 
     return True  # no base tested showed n as composite
-
-
 
 
 # Returns all prime numbers from start to stop, inclusive
@@ -144,7 +142,7 @@ def get_r(n):
     return r
 
 
-def construct_element(m, N):
+def construct_element_pkcs(m, N):
     n = get_bit_length(N)
     r_bit_length = n // 2
     m_bit_length = n // 2 - 24
@@ -157,9 +155,28 @@ def construct_element(m, N):
     return element
 
 
-def deconstruct_element(element, N):
+def deconstruct_element_pkcs(element, N):
     n = get_bit_length(N)
     m_bit_length = n // 2 - 24
+    m = element & int('1' * m_bit_length, 2)
+    return m
+
+
+def construct_element(m, N):
+    n = get_bit_length(N)
+    r_bit_length = n // 2
+    m_bit_length = n // 2
+    r = get_r(r_bit_length)
+
+    element = m
+    element = element ^ (r << m_bit_length)
+
+    return element
+
+
+def deconstruct_element(element, N):
+    n = get_bit_length(N)
+    m_bit_length = n // 2
     m = element & int('1' * m_bit_length, 2)
     return m
 
@@ -174,6 +191,83 @@ def decrypt_and_unpad(ciphertext, d, N):
     element = decrypt(ciphertext, d, N)
     plaintext = deconstruct_element(element, N)
     return plaintext
+
+
+
+input = ""
+output = ""
+keyfile = ""
+public = ""
+secret = ""
+numBit = ""
+function = ""
+
+for a in range(1, len(sys.argv)):
+    if sys.argv[a] == "-k":
+        keyfile = sys.argv[a + 1]
+    if sys.argv[a] == "-p":
+        public = sys.argv[a + 1]
+    if sys.argv[a] == "-o":
+        output = sys.argv[a + 1]
+    if sys.argv[a] == "-i":
+        input = sys.argv[a + 1]
+    if sys.argv[a] == "-s":
+        secret = sys.argv[a + 1]
+    if sys.argv[a] == "-n":
+        numBit = sys.argv[a + 1]
+    if sys.argv[a] == "-f":
+        function = sys.argv[a + 1]
+
+
+if function == 'encrypt':
+    keyring = open(keyfile, "r")
+    keylist = keyring.readlines()
+    keyring.close()
+    infile = open(input, "r")
+    inlist = infile.readlines()
+    infile.close()
+    n = int(keylist[0])
+    N = int(keylist[1])
+    e = int(keylist[2])
+    plaintext = inlist[0]
+    ciphertext = pad_and_encrypt(plaintext, e, N)
+    outfile = open(output, "w")
+    outfile.write(ciphertext)
+    outfile.close()
+elif function == 'decrypt':
+    keyring = open(keyfile, "r")
+    keylist = keyring.readlines()
+    keyring.close()
+    infile = open(input, "r")
+    inlist = infile.readlines()
+    infile.close()
+    n = int(keylist[0])
+    N = int(keylist[1])
+    d = int(keylist[2])
+    ciphertext = inlist[0]
+    plaintext = decrypt_and_unpad(ciphertext, d, N)
+    outfile = open(output, "w")
+    outfile.write(plaintext)
+    outfile.close()
+elif function == 'keygen':
+    n = int(numBit)
+    e, d, N = generate_key_pair(n)
+    sfile = open(secret, "w")
+    sfile.write(str(n) + '\n')
+    sfile.write(str(N) + '\n')
+    sfile.write(str(d) + '\n')
+    sfile.close()
+    pfile = open(public, "w")
+    pfile.write(str(n) + '\n')
+    pfile.write(str(N) + '\n')
+    pfile.write(str(e) + '\n')
+    pfile.close()
+else:
+    print("BAD INPUT PANIC!!!")
+
+
+
+exit()
 
 random.seed(1337)
 e, d, N = generate_key_pair(13)
@@ -191,6 +285,6 @@ tmp = get_r(256)
 print(tmp)
 print(format(tmp, 'x'))
 print(format(tmp << 8*2, 'x'))
-print(format(construct_element(int('beef', 16), int('10000000000000000000000000', 16)), 'x'))
-print(get_bit_length(10000000000000000000000000))
+print(format(construct_element(int('beef', 16), int('1000000000000', 16)), 'x'))
+#print(get_bit_length(10000000000000000000000000))
 print(format(279936, 'x'))
