@@ -303,7 +303,7 @@ else:
 
 
 
-#exit()
+exit()
 
 #random.seed(1337)
 print(is_prime(2))
