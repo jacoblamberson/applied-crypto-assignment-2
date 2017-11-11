@@ -108,7 +108,7 @@ def generate_key_pair(bit_length):
     p, q = find_primes_for_bit_length(bit_length)
     n = p*q
     order = (p-1)*(q-1)
-    print((p,q,n))
+    #print((p,q,n))
 
     e = choose_e(order)
     d = choose_d(order, e)
@@ -229,10 +229,10 @@ if function == 'encrypt':
     n = int(keylist[0])
     N = int(keylist[1])
     e = int(keylist[2])
-    plaintext = inlist[0]
+    plaintext = int(inlist[0])
     ciphertext = pad_and_encrypt(plaintext, e, N)
     outfile = open(output, "w")
-    outfile.write(ciphertext)
+    outfile.write(str(ciphertext) + '\n')
     outfile.close()
 elif function == 'decrypt':
     keyring = open(keyfile, "r")
@@ -244,10 +244,10 @@ elif function == 'decrypt':
     n = int(keylist[0])
     N = int(keylist[1])
     d = int(keylist[2])
-    ciphertext = inlist[0]
+    ciphertext = int(inlist[0])
     plaintext = decrypt_and_unpad(ciphertext, d, N)
     outfile = open(output, "w")
-    outfile.write(plaintext)
+    outfile.write(str(plaintext) + '\n')
     outfile.close()
 elif function == 'keygen':
     n = int(numBit)
