@@ -122,6 +122,46 @@ def encrypt(plaintext, e, n):
 def decrypt(ciphertext, d, n):
     return pow(ciphertext, d, n)
 
+input = ""
+output = ""
+keyfile = ""
+ivfile = ""
+public = ""
+secret = ""
+numBit = ""
+checkiv = 0
+
+for a in range(1, len(sys.argv)):
+    if sys.argv[a] == "-k":
+        keyfile = sys.argv[a + 1]
+    if sys.argv[a] == "-p":
+        pubKey = sys.argv[a + 1]
+    if sys.argv[a] == "-o":
+        output = sys.argv[a + 1]
+    if sys.argv[a] == "-i":
+        input = sys.argv[a + 1]
+    if sys.argv[a] == "-s":
+        secret = sys.argv[a + 1]
+    if sys.argv[a] == "-n":
+        numBit = sys.argv[a + 1]
+    if sys.argv[a] == "-f":
+        function = sys.argv[a + 1]
+
+infile = open(input, "rb")
+hex_data = infile.read()
+infile.close()
+
+outfile = open(output, "wb")
+
+pubFile = open(pubKey, "wb")
+
+secretFile = open(secret, "wb")
+
+keyring = open(keyfile, "r")
+key = keyring.read()
+hex_data = binascii.hexlify(hex_data).decode('utf-8')
+
+
 
 def get_random_bits(n):
     # THIS IS NOT SECURE RANDOMNESS, but I need determinism. Sorry not sorry.
