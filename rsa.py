@@ -1,9 +1,15 @@
 import random, sys
 
 
+NUM_TRIALS = 5
+
+
 # Checks to see if a number is likely to be prime.
 def is_prime(n):
     # special case 2
+    if n < 2:
+        print("PANIC PANIC PANIC prime candidate less than 2")
+        return False
     if n == 2:
         return True
     # ensure n is odd
@@ -30,7 +36,7 @@ def is_prime(n):
                 return False
         return True  # n is definitely composite
 
-    for i in range(_mrpt_num_trials):
+    for i in range(NUM_TRIALS):
         a = random.randrange(2, n)
         if try_composite(a):
             return False
@@ -38,19 +44,38 @@ def is_prime(n):
     return True  # no base tested showed n as composite
 
 
+# Right-to-left binary method
+# A rip-off of Bruce Schneider's pseudocode
+def my_modular_exp(base, exponent, modulus):
+    if modulus == 1:
+        return 0
+    result = 1
+    base = base % modulus
+    while exponent > 0:
+        if exponent % 2 == 1:
+            result = (result * base) % modulus
+        exponent = exponent >> 1
+        base = (base*base) % modulus
+    return result
+
+
 # Returns all prime numbers from start to stop, inclusive
 def find_primes(start, stop):
     if start >= stop:
         print("Invalid range\n")
-    primes = [2]
-    for n in range(3, stop+1, 2):
-        for p in primes:
-            if n % p == 0:
+    if start % 2 == 0:
+        start += 1
+    primes = []
+
+    for i in range(50):
+        tmp_start = random.randrange(start, stop+1)
+        for n in range(tmp_start, stop+1, 2):
+            if is_prime(n) and n not in primes:
+                primes.append(n)
                 break
-        else:
-            primes.append(n)
-    while len(primes) > 1 and primes[0] < start:
-        del primes[0]
+    #print(start)
+    #print(stop)
+    #print(primes)
     return primes
 
 
@@ -62,6 +87,12 @@ def relatively_prime(a, b):
 
 
 def get_bit_length_range(bit_length):
+    min = 1 << (bit_length - 2)
+    max = (1 << (bit_length + 1)) - 1
+    return min, max
+
+
+def get_prime_bit_length_range(bit_length):
     min = 1 << (bit_length - 1)
     max = (1 << bit_length) - 1
     return min, max
@@ -72,9 +103,10 @@ def get_bit_length(n):
 
 
 def find_primes_for_bit_length(bit_length):
+    #print(bit_length)
     n_min, n_max = get_bit_length_range(bit_length)
-    primes = find_primes(0, n_max)
-    #print primes
+    p_min, p_max = get_bit_length_range(bit_length//2 + 1)
+    primes = find_primes(p_min, p_max)
     while primes:
         p = random.choice(primes)
         primes.remove(p)
@@ -83,8 +115,10 @@ def find_primes_for_bit_length(bit_length):
         if q_candidates:
             q = random.choice(q_candidates)
             break
+        #if not primes:
+        #    primes = find_primes(p_min, p_max)
     else:
-        return 0
+        return 0, 0
     return p, q
 
 
@@ -108,7 +142,6 @@ def generate_key_pair(bit_length):
     p, q = find_primes_for_bit_length(bit_length)
     n = p*q
     order = (p-1)*(q-1)
-    #print((p,q,n))
 
     e = choose_e(order)
     d = choose_d(order, e)
@@ -116,11 +149,11 @@ def generate_key_pair(bit_length):
 
 
 def encrypt(plaintext, e, n):
-    return pow(plaintext, e, n)
+    return my_modular_exp(plaintext, e, n)
 
 
 def decrypt(ciphertext, d, n):
-    return pow(ciphertext, d, n)
+    return my_modular_exp(ciphertext, d, n)
 
 
 def get_random_bits(n):
@@ -142,6 +175,7 @@ def get_r(n):
     return r
 
 
+# Included in case PKCS is desired
 def construct_element_pkcs(m, N):
     n = get_bit_length(N)
     r_bit_length = n // 2
@@ -155,6 +189,7 @@ def construct_element_pkcs(m, N):
     return element
 
 
+# Included in case PKCS is desired
 def deconstruct_element_pkcs(element, N):
     n = get_bit_length(N)
     m_bit_length = n // 2 - 24
@@ -218,6 +253,7 @@ for a in range(1, len(sys.argv)):
     if sys.argv[a] == "-f":
         function = sys.argv[a + 1]
 
+random.seed(1337)
 
 if function == 'encrypt':
     keyring = open(keyfile, "r")
@@ -269,8 +305,14 @@ else:
 
 exit()
 
-random.seed(1337)
-e, d, N = generate_key_pair(13)
+#random.seed(1337)
+print(is_prime(2))
+print(is_prime(3))
+print(is_prime(4))
+print(is_prime(5))
+print(is_prime(6))
+print(is_prime(7))
+e, d, N = generate_key_pair(26)
 print((e, d, N))
 
 # Encrypt ASCII '00'
@@ -288,3 +330,13 @@ print(format(tmp << 8*2, 'x'))
 print(format(construct_element(int('beef', 16), int('1000000000000', 16)), 'x'))
 #print(get_bit_length(10000000000000000000000000))
 print(format(279936, 'x'))
+print(pow(12, 2, 623))
+print(my_modular_exp(12, 2, 623))
+
+#print(is_prime(1))
+print(is_prime(2))
+print(is_prime(3))
+print(is_prime(4))
+print(is_prime(5))
+print(is_prime(6))
+print(is_prime(7))
