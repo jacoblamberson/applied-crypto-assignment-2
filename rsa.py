@@ -40,7 +40,7 @@ for a in range(1, len(sys.argv)):
     if sys.argv[a] == "-k":
         keyfile = sys.argv[a + 1]
     if sys.argv[a] == "-p":
-        public = sys.argv[a + 1]
+        pubKey = sys.argv[a + 1]
     if sys.argv[a] == "-o":
         output = sys.argv[a + 1]
     if sys.argv[a] == "-i":
@@ -57,6 +57,10 @@ hex_data = infile.read()
 infile.close()
 
 outfile = open(output, "wb")
+
+pubFile = open(pubKey, "wb")
+
+secretFile = open(secret, "wb")
 
 keyring = open(keyfile, "r")
 key = keyring.read()
