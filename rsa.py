@@ -131,11 +131,11 @@ def choose_e(order):
 
 
 def choose_d(order, e):
-    for d in range(3, order, 2):
-        if d * e % order == 1:
-            return d
-    else:
-        return 0
+    for i in range(1, order):
+        tmp_check = (((order * i) + 1) / e)
+        if tmp_check.is_integer():
+            return int(tmp_check)
+    return 0
 
 
 def generate_key_pair(bit_length):
@@ -303,7 +303,7 @@ else:
 
 
 
-exit()
+#exit()
 
 #random.seed(1337)
 print(is_prime(2))
@@ -312,7 +312,7 @@ print(is_prime(4))
 print(is_prime(5))
 print(is_prime(6))
 print(is_prime(7))
-e, d, N = generate_key_pair(26)
+e, d, N = generate_key_pair(47)
 print((e, d, N))
 
 # Encrypt ASCII '00'
