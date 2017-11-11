@@ -1,4 +1,43 @@
-import random
+import random, binascii
+
+
+# Checks to see if a number is likely to be prime.
+def is_prime(n):
+    # special case 2
+    if n == 2:
+        return True
+    # ensure n is odd
+    if n % 2 == 0:
+        return False
+    # write n-1 as 2**s * d
+    # repeatedly try to divide n-1 by 2
+    s = 0
+    d = n - 1
+    while True:
+        quotient, remainder = divmod(d, 2)
+        if remainder == 1:
+            break
+        s += 1
+        d = quotient
+    assert (2 ** s * d == n - 1)
+
+    # test the base a to see whether it is a witness for the compositeness of n
+    def try_composite(a):
+        if pow(a, d, n) == 1:
+            return False
+        for i in range(s):
+            if pow(a, 2 ** i * d, n) == n - 1:
+                return False
+        return True  # n is definitely composite
+
+    for i in range(_mrpt_num_trials):
+        a = random.randrange(2, n)
+        if try_composite(a):
+            return False
+
+    return True  # no base tested showed n as composite
+
+
 
 
 # Returns all prime numbers from start to stop, inclusive
@@ -28,6 +67,10 @@ def get_bit_length_range(bit_length):
     min = 1 << (bit_length - 1)
     max = (1 << bit_length) - 1
     return min, max
+
+
+def get_bit_length(n):
+    return len(bin(n))-2
 
 
 def find_primes_for_bit_length(bit_length):
@@ -62,6 +105,7 @@ def choose_d(order, e):
     else:
         return 0
 
+
 def generate_key_pair(bit_length):
     p, q = find_primes_for_bit_length(bit_length)
     n = p*q
@@ -80,13 +124,73 @@ def encrypt(plaintext, e, n):
 def decrypt(ciphertext, d, n):
     return pow(ciphertext, d, n)
 
-random.seed(1)
-e, d, n = generate_key_pair(18)
-print((e, d, n))
+
+def get_random_bits(n):
+    # THIS IS NOT SECURE RANDOMNESS, but I need determinism. Sorry not sorry.
+    return random.getrandbits(n)
+
+
+def get_r(n):
+    sr = ""
+    while len(sr) < n/4:
+        tmp = int(get_random_bits(8))
+        if tmp != 0:
+            tmps = format(tmp, 'x')
+            if len(tmps) == 1:
+                tmps = '0' + tmps
+            sr += tmps
+    r = int(sr, 16)
+    r = r & int('1' * n, 2)
+    return r
+
+
+def construct_element(m, N):
+    n = get_bit_length(N)
+    r_bit_length = n // 2
+    m_bit_length = n // 2 - 24
+    r = get_r(r_bit_length)
+
+    element = m
+    element = element ^ (r << (8 + m_bit_length))
+    element = element ^ (2 << (r_bit_length + 8 + m_bit_length))
+
+    return element
+
+
+def deconstruct_element(element, N):
+    n = get_bit_length(N)
+    m_bit_length = n // 2 - 24
+    m = element & int('1' * m_bit_length, 2)
+    return m
+
+
+def pad_and_encrypt(m, e, N):
+    element = construct_element(m, N)
+    ciphertext = encrypt(element, e, N)
+    return ciphertext
+
+
+def decrypt_and_unpad(ciphertext, d, N):
+    element = decrypt(ciphertext, d, N)
+    plaintext = deconstruct_element(element, N)
+    return plaintext
+
+random.seed(1337)
+e, d, N = generate_key_pair(13)
+print((e, d, N))
 
 # Encrypt ASCII '00'
-print(encrypt(12336, e, n))
-print(decrypt(encrypt(12336, e, n), d, n))
+print(encrypt(12336, e, N))
+print(decrypt(encrypt(12336, e, N), d, N))
 
 # Encrypt ASCII '0'
-print(encrypt(48, e, n))
+print(encrypt(48, e, N))
+
+print(get_bit_length(7))
+tmp = get_r(256)
+print(tmp)
+print(format(tmp, 'x'))
+print(format(tmp << 8*2, 'x'))
+print(format(construct_element(int('beef', 16), int('10000000000000000000000000', 16)), 'x'))
+print(get_bit_length(10000000000000000000000000))
+print(format(279936, 'x'))
