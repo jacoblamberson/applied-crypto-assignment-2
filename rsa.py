@@ -6,17 +6,13 @@ NUM_TRIALS = 5
 
 # Checks to see if a number is likely to be prime.
 def is_prime(n):
-    # special case 2
     if n < 2:
         print("PANIC PANIC PANIC prime candidate less than 2")
         return False
     if n == 2:
         return True
-    # ensure n is odd
     if n % 2 == 0:
         return False
-    # write n-1 as 2**s * d
-    # repeatedly try to divide n-1 by 2
     s = 0
     d = n - 1
     while True:
@@ -25,23 +21,21 @@ def is_prime(n):
             break
         s += 1
         d = quotient
-    assert (2 ** s * d == n - 1)
 
-    # test the base a to see whether it is a witness for the compositeness of n
     def try_composite(a):
         if pow(a, d, n) == 1:
             return False
         for i in range(s):
             if pow(a, 2 ** i * d, n) == n - 1:
                 return False
-        return True  # n is definitely composite
+        return True
 
     for i in range(NUM_TRIALS):
         a = random.randrange(2, n)
         if try_composite(a):
             return False
 
-    return True  # no base tested showed n as composite
+    return True
 
 
 # Right-to-left binary method
@@ -312,7 +306,7 @@ print(is_prime(4))
 print(is_prime(5))
 print(is_prime(6))
 print(is_prime(7))
-e, d, N = generate_key_pair(47)
+e, d, N = generate_key_pair(51)
 print((e, d, N))
 
 # Encrypt ASCII '00'
